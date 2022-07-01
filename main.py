@@ -12,7 +12,7 @@ class Card:
         if value in Card.faceCards:
             self.card_value = 10
         else:
-            # drawing an Ace card raises a ValueError
+            # Instantiating a Card with an 'Ace' raises ValueError
             try:
                 self.card_value = int(value)
             except ValueError:
@@ -42,7 +42,7 @@ class Deck:
 
 
 class Dealer:
-    score_value = 0
+    score = 0
     rounds_won = 0
     hand = []
 
@@ -59,12 +59,12 @@ class Dealer:
 
     def addScore_count(self, card):
         if card.value == "Ace":
-            if self.score_value <= 10:
-                self.card_value = 11
-            elif self.score_value <= 20:
-                self.card_value = 1
+            if self.score <= 10:
+                self.score += 11
+            elif self.score <= 20:
+                self.score += 1
         else:
-            self.score_value += card.card_value
+            self.score += card.card_value
 
 
     def display_score(self):
@@ -75,7 +75,7 @@ class Dealer:
 
     # returns a boolean to see if dealer should deal another card
     def isDraw_card(self):
-        if self.score_value <= 17:
+        if self.score <= 17:
             return True
         return False
 
@@ -86,27 +86,37 @@ class Player(Dealer):
 
 
 class Game:
+    perfect_hand = [["Jack", "Ace"], ["King", "Ace"], ["Queen", "Ace"]]
 
     def main(self):
         self.dealer = Dealer()
         self.player = Player("TestUser")
         self.deck = Deck()
-        self.test_rounds = 3 # perform test rounds
+        self.test_rounds = 2 # perform test rounds
 
         for i in range(self.test_rounds):
+            print(f"The Deck has {len(self.deck.deck)}") # testing code
             self.restart_game()
             self.deal_cards(self.dealer)
-            print("=" * 20, "\n")
+            print("=" * 20, "\n") # for aesthetic displaying purpose
             self.deal_cards(self.player)
             print("=" * 20, "\n")
             bust = False
+            player_blackjack = self.isBlackJack(self.player)
+            dealer_blackjack = self.isBlackJack(self.dealer)
 
-            # when player is dealt BlackJack at starting hand
-            if self.player.score_value == 21:
+            if player_blackjack:
                 print("BlackJack!\nCongratulations!!")
-                self.restart_game()
+                print("=" * 20, "\n")
+                self.display_finalScore()
+                continue
+            elif dealer_blackjack:
+                print("Better luck next time!")
+                print("=" * 20, "\n")
+                self.display_finalScore()
                 continue
 
+            # main game loop
             while not bust:
 
                 self.display_currentScore()
@@ -129,10 +139,10 @@ class Game:
                             print(card, end="|")
                         card = self.deck.remove_card()
                         self.dealer.recieve_card(card)
-                        print("dealer" + " drew", card, end="\n") # this could be in a method of its own
+                        print("dealer" + " drew", card, end="\n")
                         isDealer_nextCard = self.dealer.isDraw_card()
 
-                    if self.dealer.score_value > 21:
+                    if self.dealer.score > 21:
                             self.display_finalScore()
                             print("You win this round!")
                             print("=" * 20, "\n")
@@ -152,14 +162,12 @@ class Game:
                         break
 
 
-                blackJack = self.isBlackJack()
                 # doesn't run unless it's a blackjack for player
-                if blackJack:
-                    print("BlackJack!\nCongratulations!!")
-                    break
+                # if blackJack:
+                #     print("BlackJack!\nCongratulations!!")
+                #     print("=" * 20, "\n")
+                #     break
 
-                # display current score
-                self.display_currentScore() # Buggy code
                 bust = self.isBust()
 
             if bust:
@@ -167,7 +175,7 @@ class Game:
                 print("=" * 20, "\n")
 
 
-    # this method is ccalled at the starting point of cards dealt, (the starting hand)
+    # deals two cards to player and dealer
     def deal_cards(self, card_reciever): # buggy code
             for i in range(2):
                 card = self.deck.remove_card()
@@ -175,39 +183,46 @@ class Game:
 
                 if card_reciever is self.player:
                     print(f"{self.player.name} drew {card}")
-                # this is the dealer's starting hand: sccore_value is unknown
+                # this is the dealer's starting hand: score is unknown
                 elif card_reciever is self.dealer and len(self.dealer.hand) < 2:
                     print(f"Dealer drew {card_reciever.hand[0]}")
 
 
-    def isBust(self):
-        if self.player.score_value > 21:
+    def isBlackJack(self, player):
+        """
+        player perimeter is a player instance,
+        compares the list of cards drawn to 'player' and return Boolean
+        if dealt a perfect hand known as BlackJack
+        """
+        player_hand = [card.value for card in player.hand]
+
+        if player_hand in self.perfect_hand:
             return True
         return False
 
 
-    # should be called at the end of round,
+    def isBust(self):
+        if self.player.score > 21:
+            return True
+        return False
+
+
+    # called at the end of round,
     def isWinner(self):
-        player_score = self.player.score_value
-        dealer_score = self.dealer.score_value
+        player_score = self.player.score
+        dealer_score = self.dealer.score
         if player_score > dealer_score:
             return True
         return False
 
 
-    def isBlackJack(self):
-        if self.player.score_value == 21:
-            return True
-        return False
-
-
     def display_finalScore(self):
-        print(f"{self.player.name} has a score of: {self.player.score_value}")
-        print(f"{self.dealer.name} has a score of: {self.dealer.score_value}")
+        print(f"{self.player.name} has a score of: {self.player.score}")
+        print(f"{self.dealer.name} has a score of: {self.dealer.score}")
 
 
     def display_currentScore(self):
-        print(f"{self.player.name} has a score of: {self.player.score_value}")
+        print(f"{self.player.name} has a score of: {self.player.score}")
         self.dealer.display_score()
 
 
@@ -215,10 +230,18 @@ class Game:
     def restart_game(self):
         self.player.hand = []
         self.dealer.hand = []
-        self.player.score_value = 0
-        self.dealer.score_value = 0
+        self.player.score = 0
+        self.dealer.score = 0
         self.bust = False
 
 
-game = Game()
-game.main()
+if __name__ == "__main__":
+    # try statement is for debugging purposes
+    try:
+        game = Game()
+        game.main()
+    except KeyboardInterrupt:
+        exit()
+
+# TODO: player and dealer should each have a while loop each, where
+#       card is dealt, updates score, checks if hand is bust, or hits stay
