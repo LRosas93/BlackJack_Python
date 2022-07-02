@@ -117,62 +117,48 @@ class Game:
                 continue
 
             # main game loop
-            while not bust:
+            response = "HIT"
+            while response == "HIT":
 
                 self.display_currentScore()
+
+                #  player draws until busts, stay, or hits blackJack
+                card = self.deck.remove_card()
+                self.player.recieve_card(card)
+
+                print(f"{self.player.name}" + " drew", card)
+
+                if self.player.score > 21:
+                    print("Busts\nBetter luck next time!")
+                    print("=" * 20, "\n")
+                    break
+                elif self.player.score == 21:
+                    print("BlackJack!")
+                    print("Congratulations You win this round")
+                    break
+
                 print("'HIT' or 'STAY?'")
                 response = input("").upper()
 
-                #  player draws until busts, stay, or hits blackJack
-                if response == "HIT":
-                    card = self.deck.remove_card()
-                    self.player.recieve_card(card)
-                    print(f"{self.player.name}" + " drew", card)
+            # dealer draws until bust or score is <= 17
+            while self.dealer.score <= 17:
+                print("Dealer's hand:")
+                for card in self.dealer.hand:
+                    print(card, end="|")
+                card = self.deck.remove_card()
+                self.dealer.recieve_card(card)
+                print("dealer" + " drew", card, end="\n")
 
-                elif response == "STAY":
+                if self.dealer.score > 21:
+                    print("Congratulations\nYou win this round!")
+                    print("=" * 20, "\n")
+                    break
+                elif self.dealer.score == 21:
+                    print("dealer hits BlackJack!")
+                    print("Better luck next time ")
+                    print("=" * 20, "\n")
+                    break
 
-                    # dealer draws until bust or score is <= 17
-                    isDealer_nextCard = self.dealer.isDraw_card()
-                    print("Dealer's hand:")
-                    while isDealer_nextCard:
-                        for card in self.dealer.hand:
-                            print(card, end="|")
-                        card = self.deck.remove_card()
-                        self.dealer.recieve_card(card)
-                        print("dealer" + " drew", card, end="\n")
-                        isDealer_nextCard = self.dealer.isDraw_card()
-
-                    if self.dealer.score > 21:
-                            self.display_finalScore()
-                            print("You win this round!")
-                            print("=" * 20, "\n")
-                            break
-
-                    # this is called after dealer hits busts, or stays
-                    isPlayer_winner = self.isWinner()
-                    if isPlayer_winner:
-                        self.display_finalScore()
-                        print("You win this round!")
-                        print("=" * 20, "\n")
-                        break
-                    else:
-                        self.display_finalScore()
-                        print("Better luck next time!")
-                        print("=" * 20, "\n")
-                        break
-
-
-                # doesn't run unless it's a blackjack for player
-                # if blackJack:
-                #     print("BlackJack!\nCongratulations!!")
-                #     print("=" * 20, "\n")
-                #     break
-
-                bust = self.isBust()
-
-            if bust:
-                print("Busts\nBetter luck next time!")
-                print("=" * 20, "\n")
 
 
     # deals two cards to player and dealer
