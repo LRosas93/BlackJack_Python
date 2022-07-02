@@ -86,13 +86,16 @@ class Player(Dealer):
 
 
 class Game:
-    perfect_hand = [["Jack", "Ace"], ["King", "Ace"], ["Queen", "Ace"]]
+    # hand will match exactly at index position, so different variations is
+    # necessary
+    perfect_hand = [["Jack", "Ace"], ["King", "Ace"], ["Queen", "Ace"],
+                    ["Ace", "Jack"], ["Ace", "King"], ["Ace", "Queen"]]
 
     def main(self):
         self.dealer = Dealer()
         self.player = Player("TestUser")
         self.deck = Deck()
-        self.test_rounds = 2 # perform test rounds
+        self.test_rounds = 1 # perform test rounds
 
         for i in range(self.test_rounds):
             print(f"The Deck has {len(self.deck.deck)}") # testing code
@@ -122,21 +125,27 @@ class Game:
 
                 self.display_currentScore()
 
-                #  player draws until busts, stay, or hits blackJack
-                card = self.deck.remove_card()
-                self.player.recieve_card(card)
+                print("'HIT' or 'STAY?'")
+                response = input("").upper()
 
-                print(f"{self.player.name}" + " drew", card)
+                if response == "HIT":
 
-                if self.player.score > 21:
-                    print("Busts\nBetter luck next time!")
-                    print("=" * 20, "\n")
-                    break
-                elif self.player.score == 21:
-                    print("BlackJack!")
-                    print("Congratulations You win this round")
-                    break
+                    #  player draws until busts, stay, or hits blackJack
+                    card = self.deck.remove_card()
+                    self.player.recieve_card(card)
 
+                    print(f"{self.player.name}" + " drew", card)
+
+                    if self.player.score > 21:
+                        print("Busts\nBetter luck next time!")
+                        print("=" * 20, "\n")
+                        break
+                    elif self.player.score == 21:
+                        print("BlackJack!")
+                        print("Congratulations You win this round")
+                        break
+
+                self.display_currentScore()
                 print("'HIT' or 'STAY?'")
                 response = input("").upper()
 
@@ -149,16 +158,30 @@ class Game:
                 self.dealer.recieve_card(card)
                 print("dealer" + " drew", card, end="\n")
 
-                if self.dealer.score > 21:
-                    print("Congratulations\nYou win this round!")
-                    print("=" * 20, "\n")
-                    break
-                elif self.dealer.score == 21:
-                    print("dealer hits BlackJack!")
+            if self.dealer.score < 21:
+                if self.dealer.score > self.player.score:
+                    self.display_finalScore()
                     print("Better luck next time ")
                     print("=" * 20, "\n")
                     break
+                else:
+                    self.display_finalScore()
+                    print("Congratulations\nYou win this round!")
+                    print("=" * 20, "\n")
+                    break
 
+            if self.dealer.score == 21:
+                self.display_finalScore()
+                print("dealer hits BlackJack!")
+                print("Better luck next time ")
+                print("=" * 20, "\n")
+                break
+
+            elif self.dealer.score > 21:
+                self.display_finalScore()
+                print("Congratulations\nYou win this round!")
+                print("=" * 20, "\n")
+                break
 
 
     # deals two cards to player and dealer
@@ -183,12 +206,6 @@ class Game:
         player_hand = [card.value for card in player.hand]
 
         if player_hand in self.perfect_hand:
-            return True
-        return False
-
-
-    def isBust(self):
-        if self.player.score > 21:
             return True
         return False
 
