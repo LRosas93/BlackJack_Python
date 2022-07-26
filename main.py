@@ -86,27 +86,24 @@ class Player(Dealer):
 
 
 class Game:
-    # A perfect_hand is an automatic BlackJack, so must include all variations
-    perfect_hand = [["Jack", "Ace"], ["King", "Ace"], ["Queen", "Ace"],
-                    ["Ace", "Jack"], ["Ace", "King"], ["Ace", "Queen"]]
 
     def main(self):
+        self.deck = Deck()
         self.dealer = Dealer()
         self.player = Player("TestUser")
-        self.deck = Deck()
-        self.test_rounds = 4 # perform test rounds
+        self.test_rounds = 4
 
         for i in range(self.test_rounds):
-            print(f"The Deck has {len(self.deck.deck)}") # testing code
+            response = "HIT"
             self.restart_game()
             self.deal_cards(self.dealer)
             print("=" * 20, "\n") # for aesthetic displaying purpose
             self.deal_cards(self.player)
             print("=" * 20, "\n")
-            bust = False
+
+            # checks for blackjack in the beginning
             player_blackjack = self.isBlackJack(self.player)
             dealer_blackjack = self.isBlackJack(self.dealer)
-
             if player_blackjack:
                 print("BlackJack!\nCongratulations!!")
                 print("=" * 20, "\n")
@@ -118,59 +115,42 @@ class Game:
                 self.display_finalScore()
                 continue
 
-            # Player loop
-            while self.player.score <= 21:
-
+            # Player dealing
+            while self.player.score <= 21 and response == "HIT":
                 self.display_currentScore()
-
                 print("'HIT' or 'STAY?'")
                 response = input("").upper()
 
                 if response == "HIT":
-
                     card = self.deck.remove_card()
                     self.player.recieve_card(card)
-
                     print(f"{self.player.name}" + " drew", card)
 
-                    # if self.player.score > 21:
-                    #     print("Busts\nBetter luck next time!")
-                    #     print("=" * 20, "\n")
-                    #     break
-                    if self.player.score == 21:
-                        player_win = True
-                        break
+                # elif response == "STAY":
+                #     break
 
-                elif response == "STAY":
-                    break
-
-            # Dealer loop
+            # Dealer dealing
             while self.dealer.score <= 17:
                 print("Dealer's hand:")
                 for card in self.dealer.hand:
-                    print(card, end="|")
+                    print(card, end="|") # displays hand in a pleasing way
                 card = self.deck.remove_card()
                 self.dealer.recieve_card(card)
-
                 print("dealer" + " drew", card, end="\n")
-                if self.dealer.score == 21:
-                    dealer_win = True
 
-            # when player and dealer don't busts
-            if self.player.score < 21 and self.dealer.score < 21:
+            # when player and dealer hit stay, it's a loss if it's a tie
+            if response == "STAY" and self.dealer.score <= 21:
                 if self.player.score > self.dealer.score:
                     self.display_finalScore()
                     print("Congratulations\nYou win this round!")
                     print("=" * 20, "\n")
-                # if player and dealer have same score: it's a lose
                 else:
                     self.display_finalScore()
                     print("Better luck next time ")
                     print("=" * 20, "\n")
-                    break
 
-            # when player or dealer busts
-            if self.player.score > 21 or self.dealer.score > 21:
+            # player wins if only dealer busts
+            elif self.player.score > 21 or self.dealer.score > 21:
                 if self.player.score > 21:
                     self.display_finalScore()
                     print("Better luck next time ")
@@ -179,21 +159,6 @@ class Game:
                     self.display_finalScore()
                     print("Congratulations\nYou win this round!")
                     print("=" * 20, "\n")
-
-            # when player or dealer hit blackjack
-            elif player_win or dealer_win:
-                if player_win:
-                    self.display_finalScore()
-                    print("Congratulations\nYou win this round!")
-                    print("=" * 20, "\n")
-                else:
-                    self.display_finalScore()
-                    print("dealer hits BlackJack!")
-                    print("Better luck next time ")
-                    print("=" * 20, "\n")
-
-
-
 
     # deals two cards to player and dealer
     def deal_cards(self, card_reciever): # buggy code
@@ -210,13 +175,15 @@ class Game:
 
     def isBlackJack(self, player):
         """
-        player perimeter is a player instance,
         compares the list of cards drawn to 'player' and return Boolean
         if dealt a perfect hand known as BlackJack
         """
+        perfect_hand = [["Jack", "Ace"], ["King", "Ace"], ["Queen", "Ace"],
+                        ["Ace", "Jack"], ["Ace", "King"], ["Ace", "Queen"]]
+
         player_hand = [card.value for card in player.hand]
 
-        if player_hand in self.perfect_hand:
+        if player_hand in perfect_hand:
             return True
         return False
 
@@ -246,15 +213,12 @@ class Game:
         self.dealer.hand = []
         self.player.score = 0
         self.dealer.score = 0
-        self.bust = False
 
 
 if __name__ == "__main__":
-    # try statement is for debugging purposes
+    # for debugging purposes
     try:
         game = Game()
         game.main()
     except KeyboardInterrupt:
         exit()
-
-# TODO: check for wins in all scenarios at end of while loops.
