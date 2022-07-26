@@ -126,9 +126,6 @@ class Game:
                     self.player.recieve_card(card)
                     print(f"{self.player.name}" + " drew", card)
 
-                # elif response == "STAY":
-                #     break
-
             # Dealer dealing
             while self.dealer.score <= 17:
                 print("Dealer's hand:")
